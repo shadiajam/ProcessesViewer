@@ -43,6 +43,7 @@ type
       State: TCustomDrawState; var DefaultDraw: Boolean);
     procedure tvMainHint(Sender: TObject; const Node: TTreeNode;
       var Hint: string);
+    procedure tvMainChange(Sender: TObject; Node: TTreeNode);
   private
     { Private declarations }
     FProcessesThread : TEMSI_ProcessesListThread;
@@ -98,6 +99,16 @@ begin
   TabProcess.Visible := True;
   TabBaseProcess.Visible := False;
   TabProcess.Caption := WinProc.ExeFile+': '+WinProc.ProcessID.ToString;
+  FrameProcess.FillFromWinProc(WinProc);
+end;
+
+procedure TfrmMain.tvMainChange(Sender: TObject; Node: TTreeNode);
+var ANode : TEMSI_TreeNode;
+begin
+  if Node = nil then exit;
+  ANode := TEMSI_TreeNode(Node);
+  if ANode.NodeType = ntProcess then
+    ShowProccessInformation(ANode.ProcessObj);
 end;
 
 procedure TfrmMain.tvMainCreateNodeClass(Sender: TCustomTreeView;

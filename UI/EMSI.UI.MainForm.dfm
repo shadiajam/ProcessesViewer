@@ -47,6 +47,7 @@ object frmMain: TfrmMain
         ReadOnly = True
         RowSelect = True
         TabOrder = 0
+        OnChange = tvMainChange
         OnCreateNodeClass = tvMainCreateNodeClass
         OnCustomDrawItem = tvMainCustomDrawItem
         OnHint = tvMainHint
@@ -84,20 +85,22 @@ object frmMain: TfrmMain
             ExplicitHeight = 447
             inherited Panel1: TPanel
               Width = 433
-              ExplicitLeft = 2
             end
             inherited Panel2: TPanel
-              Width = 433
+              Width = 427
               inherited Label1: TLabel
-                Width = 421
+                Width = 415
                 ExplicitLeft = 6
                 ExplicitWidth = 41
               end
               inherited edtFullPath: TEdit
-                Width = 421
+                Width = 415
                 ExplicitLeft = 6
                 ExplicitWidth = 603
               end
+            end
+            inherited Panel3: TPanel
+              Width = 427
             end
           end
         end
