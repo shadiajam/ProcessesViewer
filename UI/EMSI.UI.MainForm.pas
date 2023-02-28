@@ -7,7 +7,8 @@ uses
   System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
   Vcl.ComCtrls,EMSI.UI.TreeNode, Vcl.ExtCtrls,
-  EMSI.SysInfo.Threads, Vcl.Menus
+  EMSI.SysInfo.Threads, Vcl.Menus, EMSI.UI.ProcessFrame,
+  EMSI.SysInfo.Processes
   ;
 
 type
@@ -30,6 +31,10 @@ type
     mnu10Sec: TMenuItem;
     heme1: TMenuItem;
     Update1: TMenuItem;
+    PageControl: TPageControl;
+    TabProcess: TTabSheet;
+    TabBaseProcess: TTabSheet;
+    FrameProcess: TFrameProcess;
     procedure tvMainCreateNodeClass(Sender: TCustomTreeView;
       var NodeClass: TTreeNodeClass);
     procedure mnu10SecClick(Sender: TObject);
@@ -42,6 +47,8 @@ type
     { Private declarations }
     FProcessesThread : TEMSI_ProcessesListThread;
     procedure SetRefreshInterval(Interval:integer);
+
+    procedure ShowProccessInformation(WinProc : TEMSI_WinProcess);
   public
     procedure AfterConstruction; override;
     procedure BeforeDestruction; override;
@@ -84,6 +91,13 @@ end;
 procedure TfrmMain.SetRefreshInterval(Interval: integer);
 begin
   FProcessesThread.Interval := Interval;
+end;
+
+procedure TfrmMain.ShowProccessInformation(WinProc: TEMSI_WinProcess);
+begin
+  TabProcess.Visible := True;
+  TabBaseProcess.Visible := False;
+  TabProcess.Caption := WinProc.ExeFile+': '+WinProc.ProcessID.ToString;
 end;
 
 procedure TfrmMain.tvMainCreateNodeClass(Sender: TCustomTreeView;

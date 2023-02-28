@@ -9,7 +9,8 @@ uses
   EMSI.UI.TreeNode in 'UI\EMSI.UI.TreeNode.pas',
   Vcl.Themes,
   Vcl.Styles,
-  EMSI.SysInfo.Threads in 'SysInfo\EMSI.SysInfo.Threads.pas';
+  EMSI.SysInfo.Threads in 'SysInfo\EMSI.SysInfo.Threads.pas',
+  EMSI.UI.ProcessFrame in 'UI\EMSI.UI.ProcessFrame.pas' {FrameProcess: TFrame};
 
 {$R *.res}
 

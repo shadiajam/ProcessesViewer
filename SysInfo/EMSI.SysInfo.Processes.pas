@@ -46,6 +46,7 @@ type
     UserName: string;
     FullPath: string;
     Version: string;
+    SessionID : integer;
 
     RootNode:boolean;
     RelatedObject:TObject; // Save TreeNode for use it on update
@@ -201,6 +202,7 @@ begin
   ProcessID := 0;
   ParentPID := 0;
   ThreadsCount := 0;
+  SessionID := -1;
   FSubProcesses := TEMSI_WinProcessList.Create(False);
   RelatedObject := nil;
 end;
@@ -219,6 +221,7 @@ begin
   UserName := TEMSI_WinProcess(Source).UserName;
   FullPath := TEMSI_WinProcess(Source).FullPath;
   Version := TEMSI_WinProcess(Source).Version;
+  SessionID := TEMSI_WinProcess(Source).SessionID;
 
 
 
@@ -241,11 +244,58 @@ begin
   Result := emsi_ValidResult;
 end;
 
+function GetProcessUserName(ProcessHandle:THandle): string;
+const
+  TOKEN_QUERY = $0008;
+  MaxNameLen = 256;
+var
+  hToken: THandle;
+  TokenInfo: PTokenUser;
+  InfoSize: DWORD;
+  UserName: array[0..MaxNameLen-1] of Char;
+  UserNameLen: DWORD;
+  DomainName: array[0..MaxNameLen-1] of Char;
+  DomainNameLen: DWORD;
+  NameUse: SID_NAME_USE;
+begin
+  Result := '';
+  if ProcessHandle = 0 then
+    Exit;
+  if not OpenProcessToken(ProcessHandle, TOKEN_QUERY, hToken) then
+    Exit;
+  try
+    GetTokenInformation(hToken, TokenUser, nil, 0, InfoSize);
+    TokenInfo := GetMemory(InfoSize);
+    try
+      if not GetTokenInformation(hToken, TokenUser, TokenInfo, InfoSize, InfoSize) then
+        Exit;
+      UserNameLen := MaxNameLen;
+      DomainNameLen := MaxNameLen;
+      if not LookupAccountSid(nil, TokenInfo.User.Sid, UserName, UserNameLen, DomainName, DomainNameLen, NameUse) then
+        Exit;
+      Result := Format('%s\%s', [DomainName, UserName]);
+    finally
+      FreeMemory(TokenInfo);
+    end;
+  finally
+    CloseHandle(hToken);
+  end;
+end;
+
+function GetProcessSessionID(ProcessID: DWORD): DWORD;
+var
+  SessionID: DWORD;
+begin
+  if not ProcessIdToSessionId(ProcessID, SessionID) then
+    SessionID := 0;
+  Result := SessionID;
+end;
+
+
 function TEMSI_WinProcess.FillProcessInfo: TEMSI_Result;
 var ProcessHandle: THandle;
-  FileName: array[0..MAX_PATH - 1] of Char;
-  Lang, SubLang: LANGID;
-  Buffer: array[0..$FF] of Char;
+    FileName: array[0..MAX_PATH - 1] of Char;
+
 begin
   Result := emsi_Unknown;
 
@@ -260,64 +310,16 @@ begin
     if GetModuleFileNameEx(ProcessHandle, 0, @FileName, MAX_PATH) > 0 then
        FullPath := FileName;
 
+    // Get the process user name
+    UserName := GetProcessUserName(ProcessHandle);
+    SessionID := GetProcessSessionID(ProcessID);
 
-//    // Get the process file version information
-//    if GetFileVersionInfo(FileName, 0, SizeOf(Buffer), @Buffer) then
-//    begin
-//      if VerQueryValue(@Buffer, '\VarFileInfo\Translation', Pointer(Lang), SizeOf(Lang)) then
-//      begin
-//        VerLanguageName(Lang, Buffer, SizeOf(Buffer));
-//        if VerQueryValue(@Buffer, PChar(Format('\StringFileInfo\%04X%04X\FileVersion', [Lang, SubLang])), Pointer(Version), SizeOf(Version)) then
-//          Version := Trim(Version);
-//      end;
-//    end;
-//
-//    // Get the process module information
-//    if GetModuleFileNameEx(ProcessHandle, 0, FileName, Length(FileName)) > 0 then
-//    begin
-//      // Get the process description and company name
-//      if GetFileDescription(FileName, Description) and GetCompanyName(FileName, CompanyName) then
-//      begin
-//        // Get the process verified signer information
-//        if IsFileDigitallySigned(FileName) then
-//          VerifiedSigner := 'Yes'
-//        else
-//          VerifiedSigner := 'No';
-//
-//        // Get the process user name
-//        UserName := GetProcessUserName(PID);
-//
-//        // Get the process path
-//        Path := ExtractFilePath(FileName);
-//      end;
-//    end;
-//
-//    // Create the process information record
-//    Result.ProcessID := PID;
-//    Result.Description := Description;
-//    Result.CompanyName := CompanyName;
-//    Result.VerifiedSigner := VerifiedSigner;
-//    Result.UserName := UserName;
-//    Result.Path := Path;
-//    Result.Version := Version;
   finally
     // Close the handle to the process
     CloseHandle(ProcessHandle);
   end;
 
 
-   {ToDo : https://learn.microsoft.com/en-us/windows/win32/toolhelp/taking-a-snapshot-and-viewing-processes}
-    // Retrieve the priority class.
-//    dwPriorityClass = 0;
-//    hProcess = OpenProcess( PROCESS_ALL_ACCESS, FALSE, pe32.th32ProcessID );
-//    if( hProcess == NULL )
-//      printError( TEXT("OpenProcess") );
-//    else
-//
-//      dwPriorityClass = GetPriorityClass( hProcess );
-//      if( !dwPriorityClass )
-//        printError( TEXT("GetPriorityClass") );
-//      CloseHandle( hProcess );
 
 
   Result := emsi_ValidResult;
