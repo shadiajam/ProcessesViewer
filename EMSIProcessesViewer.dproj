@@ -143,6 +143,13 @@
             <FormType>dfm</FormType>
             <DesignClass>TFrame</DesignClass>
         </DCCReference>
+        <DCCReference Include="WMI\EMSI.WMI.Base.pas"/>
+        <DCCReference Include="WMI\EMSI.WMI.Sessions.pas"/>
+        <DCCReference Include="UI\EMSI.UI.SessionFrame.pas">
+            <Form>frmSessionInfo</Form>
+            <FormType>dfm</FormType>
+            <DesignClass>TFrame</DesignClass>
+        </DCCReference>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

@@ -10,7 +10,10 @@ uses
   Vcl.Themes,
   Vcl.Styles,
   EMSI.SysInfo.Threads in 'SysInfo\EMSI.SysInfo.Threads.pas',
-  EMSI.UI.ProcessFrame in 'UI\EMSI.UI.ProcessFrame.pas' {FrameProcess: TFrame};
+  EMSI.UI.ProcessFrame in 'UI\EMSI.UI.ProcessFrame.pas' {FrameProcess: TFrame},
+  EMSI.WMI.Base in 'WMI\EMSI.WMI.Base.pas',
+  EMSI.WMI.Sessions in 'WMI\EMSI.WMI.Sessions.pas',
+  EMSI.UI.SessionFrame in 'UI\EMSI.UI.SessionFrame.pas' {frmSessionInfo: TFrame};
 
 {$R *.res}
 

@@ -7,7 +7,8 @@ uses
   Vcl.Graphics,
   EMSI.SysInfo.Processes,
   EMSI.SysInfo.Consts,
-  EMSI.SysInfo.Base
+  EMSI.SysInfo.Base,
+  EMSI.WMI.Sessions
   ;
 
 type
@@ -17,6 +18,7 @@ type
   private
     FNodeType: TNodeType;
     FProcessObj:TEMSI_WinProcess;
+    FSessionObj:TEMSI_WMISession;
 
   public
     BackColor : TColor;
@@ -26,6 +28,7 @@ type
 
     property NodeType : TNodeType read FNodeType;
     property ProcessObj:TEMSI_WinProcess read FProcessObj;
+    property SessionObj:TEMSI_WMISession read FSessionObj;
   end;
 
   TEMSI_TreeProcedures = class
@@ -33,6 +36,7 @@ type
     class function FindNodeByProcessObj(ParentNode:TTreeNode;ProcessObj:TEMSI_WinProcess) :TEMSI_TreeNode;
   public
     class procedure FillProcessesNodes(TreeView:TTreeView;WPList: TEMSI_WinProcessList);
+    class procedure FillSessionsNodes(TreeView:TTreeView;SessionsList: TEMSI_WMISessionList);
     class procedure FillBaseNodes(TreeView:TTreeView);
   end;
 
@@ -144,7 +148,6 @@ var IsFirstFill: boolean;
 var BaseProcessesNode : TEMSI_TreeNode;
     i : integer;
 begin
-//  if WPList.ChangeStatus = lcsNoChange then exit;
   BaseProcessesNode := nil;
   for I := 0 to TreeView.Items.Count-1 do
     if TEMSI_TreeNode(TreeView.Items.Item[I]).FNodeType = ntBaseProcesses then
@@ -160,6 +163,57 @@ begin
     if IsFirstFill then
       BaseProcessesNode.Expand(false);
     DeleteKilledProcesses;
+  finally
+    TreeView.Items.EndUpdate;
+  end;
+end;
+
+class procedure TEMSI_TreeProcedures.FillSessionsNodes(TreeView: TTreeView;
+  SessionsList: TEMSI_WMISessionList);
+var IsFirstFill: boolean;
+var BaseSessionsNode : TEMSI_TreeNode;
+
+  procedure FillItems;
+  var I : integer;
+      ANode:TTreeNode;
+      NodeText,NodeHint : string;
+      NodeColor : TColor;
+      WMISession : TEMSI_WMISession;
+  begin
+    for I := 0 to SessionsList.Count-1 do
+    begin
+      WMISession := SessionsList[I];
+      ANode := nil;
+      NodeHint := '';
+      NodeColor := clDefault;
+      NodeText := format('LogonId: %s, User: %s.%s',[WMISession.LogonId,WMISession.Domain,WMISession.User]);
+      NodeHint := NodeText  + ' / LogonType: '+WMISession.LogonTypeStr;
+
+
+      ANode := TreeView.Items.AddChild(BaseSessionsNode,NodeText);
+      TEMSI_TreeNode(ANode).FNodeType := ntSession;
+      TEMSI_TreeNode(ANode).FSessionObj := WMISession;
+      TEMSI_TreeNode(ANode).NodeHint := NodeHint;
+      TEMSI_TreeNode(ANode).BackColor := NodeColor;
+    end;
+  end;
+
+var    i : integer;
+begin
+  BaseSessionsNode := nil;
+  for I := 0 to TreeView.Items.Count-1 do
+    if TEMSI_TreeNode(TreeView.Items.Item[I]).FNodeType = ntBaseSessions then
+    begin
+      BaseSessionsNode := TEMSI_TreeNode(TreeView.Items.Item[I]);
+      break;
+    end;
+  if BaseSessionsNode = nil then exit;
+  IsFirstFill := BaseSessionsNode.Count = 0;
+  try
+    TreeView.Items.BeginUpdate;
+    FillItems;
+    if IsFirstFill then
+      BaseSessionsNode.Expand(false);
   finally
     TreeView.Items.EndUpdate;
   end;
