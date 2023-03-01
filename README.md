@@ -11,3 +11,6 @@ Using Delphi without third party libraries
 
 Auto update proccess treeview
 ![Alt Text](gifs/AutoProccessUpdate.gif)
+
+Hasging
+![Alt Text](gifs/Hashing.gif)
